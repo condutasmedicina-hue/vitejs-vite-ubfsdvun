@@ -429,7 +429,7 @@ export default function App() {
             <form onSubmit={handleAuthSubmit}>
               {isRegistering ? (
                 <>
-                  <input className="apple-input" type="email" placeholder="E-mail institucional" onChange={e => setAuthEmail(e.target.value)} required />
+                  <input className="apple-input" type="email" placeholder="E-mail" onChange={e => setAuthEmail(e.target.value)} required />
                   <input className="apple-input" type="text" placeholder="Criar Usuário" onChange={e => setAuthUsername(e.target.value)} required />
                 </>
               ) : (
