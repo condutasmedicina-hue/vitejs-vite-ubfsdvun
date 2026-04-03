@@ -30,7 +30,7 @@ const CSS_AMIGO_DOC = `
 
   .app-shell { display: flex; flex-direction: column; height: 100vh; width: 100vw; }
 
-  /* ================= NAVBAR RESPONSIVA CORRIGIDA ================= */
+  /* ================= NAVBAR RESPONSIVA ================= */
   .top-navbar { 
     height: var(--nav-height); 
     border-bottom: 1px solid #E5E5EA; 
@@ -54,8 +54,7 @@ const CSS_AMIGO_DOC = `
     color: #1D1D1F;
     letter-spacing: -0.5px;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    display: inline-block;
   }
 
   .menu-toggle {
@@ -69,17 +68,17 @@ const CSS_AMIGO_DOC = `
     margin-right: 10px;
   }
 
-  .top-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .top-actions { display: flex; align-items: center; gap: 15px; flex-shrink: 0; }
 
   .btn-acesso-site {
     background: var(--apple-blue);
     color: white;
-    padding: 8px 20px;
+    padding: 10px 24px;
     border-radius: 50px;
     font-size: 13px;
     font-weight: 700;
     text-decoration: none;
-    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.15);
+    box-shadow: 0 4px 14px rgba(0, 122, 255, 0.2);
     transition: all 0.2s;
     white-space: nowrap;
   }
@@ -87,6 +86,7 @@ const CSS_AMIGO_DOC = `
   /* --- LAYOUT PRINCIPAL --- */
   .main-layout { display: flex; flex: 1; overflow: hidden; position: relative; }
 
+  /* SIDEBAR RESTRUTURADA */
   .sidebar {
     width: 280px;
     background: var(--bg-sidebar);
@@ -96,7 +96,7 @@ const CSS_AMIGO_DOC = `
     padding: 24px 12px;
     flex-shrink: 0;
     z-index: 1000;
-    background: white;
+    transition: transform 0.3s ease;
   }
 
   .sidebar-overlay {
@@ -104,74 +104,109 @@ const CSS_AMIGO_DOC = `
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
     background: rgba(0,0,0,0.3);
+    backdrop-filter: blur(2px);
     z-index: 999;
   }
 
-  .section-label { font-size: 10px; font-weight: 700; color: var(--text-sec); text-transform: uppercase; margin: 20px 0 8px 10px; letter-spacing: 0.5px; }
+  .section-label { 
+    font-size: 10px; 
+    font-weight: 700; 
+    color: var(--text-sec); 
+    text-transform: uppercase; 
+    margin: 20px 0 8px 10px; 
+    letter-spacing: 0.5px;
+    text-align: left;
+  }
 
+  /* BOTÃO TÍTULO (ANTIGA NOVA ANOTAÇÃO) */
   .btn-new-doc {
-    background: #FFF; border: 1px solid var(--border); color: var(--apple-blue);
-    font-weight: 700; font-size: 13px; padding: 14px 12px; border-radius: 12px;
-    cursor: pointer; display: flex; align-items: center; gap: 10px; margin: 10px 4px 20px;
+    background: #FFF;
+    border: 1px solid var(--border);
+    color: var(--apple-blue);
+    font-weight: 700;
+    font-size: 13px;
+    padding: 12px;
+    border-radius: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 10px 4px 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    transition: 0.2s;
   }
 
   .nav-item {
-    padding: 12px 12px; border-radius: 10px; font-size: 13px; font-weight: 500;
-    cursor: pointer; display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 4px; color: #424245;
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2px;
+    color: #424245;
+    text-align: left;
   }
   .nav-item.active { background: rgba(0, 122, 255, 0.08); color: var(--apple-blue); font-weight: 600; }
 
-  .trash { opacity: 0; font-size: 16px; padding: 4px; }
+  .trash { opacity: 0; font-size: 14px; transition: 0.2s; }
   .nav-item:hover .trash { opacity: 0.5; }
+  .trash:hover { opacity: 1 !important; color: #FF3B30; }
 
-  .editor-pane { flex: 1; display: flex; flex-direction: column; background: #FFF; overflow-y: auto; }
-  .canvas { padding: 60px 80px; max-width: 900px; width: 100%; margin: 0 auto; }
+  /* EDITOR ALINHADO À ESQUERDA */
+  .editor-pane { flex: 1; display: flex; flex-direction: column; background: #FFF; overflow-y: auto; align-items: flex-start; }
+  .canvas { padding: 60px 80px; max-width: 900px; width: 100%; text-align: left; }
 
   .title-input {
-    font-size: 42px; font-weight: 800; border: none; width: 100%;
-    margin-bottom: 24px; outline: none; letter-spacing: -1.5px;
+    font-size: 42px;
+    font-weight: 800;
+    border: none;
+    width: 100%;
+    margin-bottom: 24px;
+    outline: none;
+    letter-spacing: -1.5px;
+    background: transparent;
+    text-align: left;
   }
 
-  .body-editor { font-size: 19px; line-height: 1.7; color: #333; outline: none; min-height: 60vh; }
+  .body-editor { font-size: 19px; line-height: 1.7; color: #333; outline: none; min-height: 60vh; text-align: left; }
 
-  .empty-state { padding: 120px 40px; text-align: center; color: #94A3B8; }
+  .empty-state { padding: 120px 80px; width: 100%; text-align: left; }
+  .empty-state p { color: #94A3B8; font-size: 22px; font-weight: 500; margin: 0; }
 
-  /* ================= AJUSTES MOBILE EXTREMO ================= */
+  .save-badge { font-size: 10px; font-weight: 800; color: #10B981; text-transform: uppercase; margin-right: 15px; }
+
+  /* ================= MOBILE RULES ================= */
   @media (max-width: 768px) {
-    .top-navbar { padding: 0 15px; height: 60px; }
+    .top-navbar { padding: 0 15px; }
     .menu-toggle { display: block; }
-    .brand-icon { width: 28px; }
-    .brand-logo-text { font-size: 15px; }
-    
-    .btn-acesso-site { 
-      padding: 6px 14px; 
-      font-size: 11px; 
-      box-shadow: none; 
-      border: 1px solid rgba(0, 122, 255, 0.2);
-    }
+    .brand-logo-text { font-size: 16px; }
+    .save-badge { display: none; }
+    .btn-acesso-site { padding: 8px 14px; font-size: 11px; }
 
     .sidebar {
-      position: absolute; left: 0; height: 100%; transform: translateX(-100%);
-      transition: transform 0.3s ease;
+      position: absolute; left: 0; top: 0; bottom: 0;
+      transform: translateX(-100%);
+      background: white;
+      box-shadow: 10px 0 30px rgba(0,0,0,0.1);
     }
     .sidebar.open { transform: translateX(0); }
     .sidebar-overlay.open { display: block; }
 
-    .canvas { padding: 30px 20px; }
-    .title-input { font-size: 26px; }
-    .body-editor { font-size: 17px; }
-    .save-badge { display: none; }
+    .canvas { padding: 40px 20px; }
+    .title-input { font-size: 32px; }
+    .empty-state { padding: 60px 20px; }
+    .trash { opacity: 1; color: #CCC; }
   }
 
-  /* AUTH SCREEN & FORMS */
+  /* AUTH SCREEN */
   .auth-screen { height: 100vh; display: flex; flex-direction: column; background: #F5F5F7; }
   .auth-content { flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px; }
   .auth-card { background: white; padding: 48px; border-radius: 32px; width: 100%; max-width: 440px; text-align: left; box-shadow: 0 20px 60px rgba(0,0,0,0.05); }
   .apple-input { width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 12px; border: 1px solid #D2D2D7; font-size: 16px; background: #FBFBFE; outline: none; }
-  .apple-input:focus { border-color: var(--apple-blue); }
-  .btn-auth { background: var(--apple-blue); color: white; border: none; padding: 16px; border-radius: 12px; width: 100%; font-weight: 600; cursor: pointer; margin-top: 10px; transition: 0.2s; font-size: 16px; }
-  .btn-auth:hover { opacity: 0.9; }
+  .btn-auth { background: var(--apple-blue); color: white; border: none; padding: 16px; border-radius: 12px; width: 100%; font-weight: 600; cursor: pointer; margin-top: 10px; font-size: 16px; }
 `;
 
 interface Note {
@@ -199,12 +234,11 @@ function Navbar({ session, onSignOut, saveStatus, toggleSidebar }: any) {
         <img src="https://i.imgur.com/RuxNMnw.png" alt="Logo" className="brand-icon" />
         <span className="brand-logo-text">Amigo Congressista Doc</span>
       </div>
-
       <div className="top-actions">
-        <span className="save-badge" style={{fontSize:10, fontWeight:800, color:'#10B981', marginRight:10}}>{saveStatus}</span>
+        <span className="save-badge">{saveStatus}</span>
         <a href="https://www.amigocongressista.com.br" target="_blank" className="btn-acesso-site">Acesse o Site</a>
         {session && (
-          <button onClick={onSignOut} style={{background:'none', border:'none', cursor:'pointer', fontSize:'12px', fontWeight:700, color:'#FF3B30', padding:0}}>Sair</button>
+          <button onClick={onSignOut} style={{background:'none', border:'none', cursor:'pointer', fontSize:'13px', fontWeight:700, color:'#FF3B30', padding:0}}>Sair</button>
         )}
       </div>
     </nav>
@@ -228,6 +262,7 @@ export default function App() {
   const [authPassword, setAuthPassword] = useState('');
 
   useEffect(() => {
+    document.title = "Amigo Congressista Doc";
     supabase.auth.getSession().then(({ data: { session } }) => handleSession(session));
     supabase.auth.onAuthStateChange((_event, session) => handleSession(session));
   }, []);
@@ -277,12 +312,15 @@ export default function App() {
 
   const createNote = async (tabName?: string) => {
     if (!session) return;
-    const { data } = await supabase.from('clinical_notes').insert([{ user_id: session.user.id, tab_name: tabName || activeTab, title: 'Nova Anotação', content: encrypt('') }]).select().single();
+    const { data } = await supabase.from('clinical_notes').insert([{ 
+      user_id: session.user.id, tab_name: tabName || activeTab, title: 'Nova Anotação', content: encrypt('') 
+    }]).select().single();
     if (data) {
       const newN = { ...data, content: '' };
       setNotes([newN, ...notes]);
       setActiveNote(newN);
-      setIsSidebarOpen(false);
+      if (tabName) setActiveTab(tabName);
+      setIsSidebarOpen(false); // Fecha menu no mobile
     }
   };
 
@@ -292,7 +330,7 @@ export default function App() {
       if (isRegistering) {
         const cleanUsername = authUsername.toLowerCase().trim().replace(/\s+/g, '');
         const { data: ex } = await supabase.from('doc_profiles').select('username').eq('username', cleanUsername).maybeSingle();
-        if (ex) { alert('Usuário já existe'); return; }
+        if (ex) { alert('❌ Usuário em uso.'); return; }
         const { data, error } = await supabase.auth.signUp({ email: authEmail, password: authPassword });
         if (error) throw error;
         if (data?.user) {
@@ -303,27 +341,12 @@ export default function App() {
         let em = authLoginId.trim();
         if (!authLoginId.includes('@')) {
           const { data: p } = await supabase.from('doc_profiles').select('email').eq('username', authLoginId.toLowerCase().trim()).maybeSingle();
-          if (!p) { alert('Usuário não encontrado'); return; }
+          if (!p) { alert('❌ Usuário não encontrado.'); return; }
           em = p.email;
         }
         const { error } = await supabase.auth.signInWithPassword({ email: em, password: authPassword });
         if (error) throw error;
       }
-    } catch (err: any) { alert(err.message); }
-  };
-
-  const handleSetupMissingProfile = async (e: any) => {
-    e.preventDefault();
-    try {
-      const cleanUsername = authUsername.toLowerCase().trim().replace(/\s+/g, '');
-      const { data: existingUser } = await supabase.from('doc_profiles').select('username').eq('username', cleanUsername).maybeSingle();
-      if (existingUser) { alert('❌ Esse nome de usuário já está em uso. Por favor, escolha outro.'); return; }
-
-      const { error } = await supabase.from('doc_profiles').insert([{ id: session.user.id, username: cleanUsername, email: session.user.email }]);
-      if (error) throw error;
-      
-      setHasProfile(true);
-      fetchNotes(session.user.id);
     } catch (err: any) { alert(err.message); }
   };
 
@@ -335,12 +358,12 @@ export default function App() {
         <div className="auth-content">
           <div className="auth-card">
             <h1 className="brand-logo-text" style={{ fontSize: 24, marginBottom: 8, whiteSpace: 'normal' }}>Amigo Congressista Doc</h1>
-            <p style={{color: '#86868B', marginBottom: 24, fontSize: 13}}>Acesso ao Repositório Seguro</p>
+            <p style={{color: '#86868B', marginBottom: 24, fontSize: 13}}>Repositório Acadêmico Seguro</p>
             <form onSubmit={handleAuthSubmit}>
               {isRegistering ? (
                 <>
                   <input className="apple-input" type="email" placeholder="E-mail" onChange={e => setAuthEmail(e.target.value)} required />
-                  <input className="apple-input" type="text" placeholder="Criar Usuário" onChange={e => setAuthUsername(e.target.value)} required />
+                  <input className="apple-input" type="text" placeholder="Usuário" onChange={e => setAuthUsername(e.target.value)} required />
                 </>
               ) : (
                 <input className="apple-input" type="text" placeholder="E-mail ou Usuário" onChange={e => setAuthLoginId(e.target.value)} required />
@@ -350,7 +373,7 @@ export default function App() {
             </form>
             <p style={{marginTop: 20, fontSize: 13, textAlign: 'center'}}>
               <span onClick={() => setIsRegistering(!isRegistering)} style={{color: 'var(--apple-blue)', cursor: 'pointer', fontWeight: 600}}>
-                {isRegistering ? 'Já tenho conta' : 'Criar conta grátis'}
+                {isRegistering ? 'Voltar para Login' : 'Cadastre-se Grátis'}
               </span>
             </p>
           </div>
@@ -366,15 +389,15 @@ export default function App() {
         <Navbar session={session} onSignOut={() => supabase.auth.signOut()} saveStatus={saveStatus} />
         <div className="auth-content">
           <div className="auth-card">
-            <h2 style={{fontFamily: 'Inter', fontSize: 22, fontWeight: 800, color: 'var(--brand-dark)', marginBottom: 8, letterSpacing: '-0.5px'}}>
-              Bem-vindo ao Doc!
-            </h2>
-            <p style={{color: '#86868B', marginBottom: 24, fontSize: 14, lineHeight: 1.5}}>
-              Vimos que você já é membro do Amigo Congressista. Escolha um nome de usuário único para sincronizar seu repositório.
-            </p>
-            <form onSubmit={handleSetupMissingProfile}>
-              <input className="apple-input" type="text" placeholder="Criar Usuário" onChange={e => setAuthUsername(e.target.value)} required />
-              <button className="btn-auth" type="submit">Salvar e Entrar no Repositório</button>
+            <h2 style={{fontSize: 20, fontWeight: 800, marginBottom: 12}}>Bem-vindo ao Doc!</h2>
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              const clean = authUsername.toLowerCase().trim().replace(/\s+/g, '');
+              const { error } = await supabase.from('doc_profiles').insert([{ id: session.user.id, username: clean, email: session.user.email }]);
+              if (!error) { setHasProfile(true); fetchNotes(session.user.id); }
+            }}>
+              <input className="apple-input" type="text" placeholder="Escolha seu Usuário" onChange={e => setAuthUsername(e.target.value)} required />
+              <button className="btn-auth" type="submit">Salvar Usuário</button>
             </form>
           </div>
         </div>
@@ -388,28 +411,65 @@ export default function App() {
     <div className="app-shell">
       <style>{CSS_AMIGO_DOC}</style>
       <Navbar session={session} onSignOut={() => supabase.auth.signOut()} saveStatus={saveStatus} toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
+      
       <div className="main-layout">
         <div className={`sidebar-overlay ${isSidebarOpen ? 'open' : ''}`} onClick={() => setIsSidebarOpen(false)} />
+        
         <aside className={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
-          <div className="section-label">Pastas</div>
+          <div className="section-label">Eixos Científicos</div>
           <div style={{flex:1, overflowY:'auto'}}>
             {Array.from(new Set(['Geral', ...notes.map(n => n.tab_name)])).map(t => (
               <div key={t} className={`nav-item ${activeTab === t ? 'active' : ''}`} onClick={() => {setActiveTab(t); setActiveNote(null); setIsSidebarOpen(false);}}>
                 <span>{t === 'Geral' ? '📥 Geral' : `📂 ${t}`}</span>
+                {t !== 'Geral' && <span className="trash" onClick={async (e) => {
+                  e.stopPropagation();
+                  if(confirm('Excluir pasta?')) {
+                    setNotes(notes.filter(n => n.tab_name !== t));
+                    setActiveTab('Geral');
+                    await supabase.from('clinical_notes').delete().eq('tab_name', t);
+                  }
+                }}>🗑️</span>}
               </div>
             ))}
-            <button className="btn-new-doc" onClick={() => createNote()}>+ Nova Nota</button>
+            <button style={{background:'none', border:'none', color:'var(--apple-blue)', fontWeight:700, fontSize:12, cursor:'pointer', padding:'10px'}} onClick={() => {
+              const n = window.prompt('Nome da pasta:');
+              if (n) createNote(n);
+            }}>⊕ Criar Pasta</button>
+          </div>
+
+          <button className="btn-new-doc" onClick={() => createNote()}>
+            <span style={{fontSize: 20}}>+</span> Título
+          </button>
+
+          <div className="section-label">Notas em {activeTab}</div>
+          <div style={{flex:1, overflowY:'auto'}}>
+            {notes.filter(n => n.tab_name === activeTab).map(n => (
+              <div key={n.id} className={`nav-item ${activeNote?.id === n.id ? 'active' : ''}`} onClick={() => { setActiveNote(n); setIsSidebarOpen(false); }}>
+                <span style={{flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>{n.title || 'Sem título'}</span>
+                <span className="trash" onClick={async (e) => {
+                  e.stopPropagation();
+                  if(confirm('Excluir nota?')) {
+                    setNotes(notes.filter(note => note.id !== n.id));
+                    if(activeNote?.id === n.id) setActiveNote(null);
+                    await supabase.from('clinical_notes').delete().eq('id', n.id);
+                  }
+                }}>🗑️</span>
+              </div>
+            ))}
           </div>
         </aside>
+
         <main className="editor-pane">
           {activeNote ? (
             <div className="canvas" key={activeNote.id}>
-              <input className="title-input" value={activeNote.title} onChange={(e) => handleTitleChange(e.target.value)} placeholder="Título" />
+              <input className="title-input" value={activeNote.title} onChange={(e) => handleTitleChange(e.target.value)} placeholder="Título do Documento" />
               <div className="body-editor" contentEditable suppressContentEditableWarning onInput={(e) => handleContentChange(e.currentTarget.innerHTML)} 
                    ref={(el) => { if (el && el.dataset.id !== activeNote.id) { el.innerHTML = activeNote.content || ''; el.dataset.id = activeNote.id; } }} />
             </div>
           ) : (
-            <div className="empty-state"><p>Selecione uma nota no menu lateral.</p></div>
+            <div className="empty-state">
+              <p>← Selecione um documento acadêmico na barra lateral.</p>
+            </div>
           )}
         </main>
       </div>
