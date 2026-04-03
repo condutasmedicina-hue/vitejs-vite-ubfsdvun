@@ -430,7 +430,7 @@ export default function App() {
               {isRegistering ? (
                 <>
                   <input className="apple-input" type="email" placeholder="E-mail institucional" onChange={e => setAuthEmail(e.target.value)} required />
-                  <input className="apple-input" type="text" placeholder="Criar Usuário (ex: ivens.med)" onChange={e => setAuthUsername(e.target.value)} required />
+                  <input className="apple-input" type="text" placeholder="Criar Usuário" onChange={e => setAuthUsername(e.target.value)} required />
                 </>
               ) : (
                 <input className="apple-input" type="text" placeholder="E-mail ou Usuário" onChange={e => setAuthLoginId(e.target.value)} required />
