@@ -15,6 +15,7 @@ const CSS_AMIGO_DOC = `
     --border: rgba(0, 0, 0, 0.06);
     --text-main: #1D1D1F;
     --text-sec: #86868B;
+    --nav-height: 70px;
   }
 
   * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
@@ -29,8 +30,9 @@ const CSS_AMIGO_DOC = `
 
   .app-shell { display: flex; flex-direction: column; height: 100vh; width: 100vw; }
 
+  /* ================= HEADER OFICIAL AMIGO CONGRESSISTA ================= */
   .top-navbar { 
-    height: 70px; 
+    height: var(--nav-height); 
     border-bottom: 1px solid #E5E5EA; 
     display: flex; 
     align-items: center; 
@@ -38,6 +40,8 @@ const CSS_AMIGO_DOC = `
     padding: 0 40px; 
     background: white; 
     flex-shrink: 0; 
+    position: relative;
+    z-index: 1010;
   }
 
   .brand { display: flex; align-items: center; gap: 15px; text-decoration: none; }
@@ -51,6 +55,17 @@ const CSS_AMIGO_DOC = `
     letter-spacing: -0.5px;
     white-space: nowrap;
     display: inline-block;
+  }
+
+  /* BOTÃO MENU MOBILE */
+  .menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 28px;
+    color: var(--brand-dark);
+    cursor: pointer;
+    padding: 0;
   }
 
   .btn-acesso-site {
@@ -69,7 +84,13 @@ const CSS_AMIGO_DOC = `
 
   .top-actions { display: flex; align-items: center; gap: 15px; } 
 
-  .main-layout { display: flex; flex: 1; overflow: hidden; }
+  /* --- LAYOUT PRINCIPAL --- */
+  .main-layout { 
+    display: flex; 
+    flex: 1; 
+    overflow: hidden; 
+    position: relative;
+  }
 
   .sidebar {
     width: 280px;
@@ -79,6 +100,17 @@ const CSS_AMIGO_DOC = `
     flex-direction: column;
     padding: 24px 12px;
     flex-shrink: 0;
+    z-index: 1000;
+    background: white; /* Garante que a barra não seja transparente no mobile */
+  }
+
+  .sidebar-overlay {
+    display: none;
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(2px);
+    z-index: 999;
   }
 
   .section-label { 
@@ -97,7 +129,7 @@ const CSS_AMIGO_DOC = `
     color: var(--apple-blue);
     font-weight: 700;
     font-size: 13px;
-    padding: 12px;
+    padding: 14px 12px; /* Maior área de toque */
     border-radius: 12px;
     cursor: pointer;
     display: flex;
@@ -108,7 +140,7 @@ const CSS_AMIGO_DOC = `
   }
 
   .nav-item {
-    padding: 10px 12px;
+    padding: 12px 12px; /* Maior área de toque para celular */
     border-radius: 10px;
     font-size: 13px;
     font-weight: 500;
@@ -116,13 +148,13 @@ const CSS_AMIGO_DOC = `
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 2px;
+    margin-bottom: 4px;
     color: #424245;
     text-align: left;
   }
   .nav-item.active { background: rgba(0, 122, 255, 0.08); color: var(--apple-blue); font-weight: 600; }
 
-  .trash { opacity: 0; font-size: 14px; transition: 0.2s; }
+  .trash { opacity: 0; font-size: 16px; padding: 4px; transition: 0.2s; }
   .nav-item:hover .trash { opacity: 0.5; }
   .trash:hover { opacity: 1 !important; color: #FF3B30; }
 
@@ -150,12 +182,49 @@ const CSS_AMIGO_DOC = `
   .save-badge { font-size: 10px; font-weight: 800; color: #10B981; text-transform: uppercase; margin-right: 15px; }
 
   .auth-screen { height: 100vh; display: flex; flex-direction: column; background: #F5F5F7; }
-  .auth-content { flex: 1; display: flex; align-items: center; justify-content: center; }
-  .auth-card { background: white; padding: 48px; border-radius: 32px; width: 400px; text-align: left; box-shadow: 0 20px 60px rgba(0,0,0,0.05); }
+  .auth-content { flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px; }
+  .auth-card { background: white; padding: 48px; border-radius: 32px; width: 100%; max-width: 440px; text-align: left; box-shadow: 0 20px 60px rgba(0,0,0,0.05); }
   .apple-input { width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 12px; border: 1px solid #D2D2D7; font-size: 16px; background: #FBFBFE; outline: none; }
   .apple-input:focus { border-color: var(--apple-blue); }
-  .btn-auth { background: var(--apple-blue); color: white; border: none; padding: 14px; border-radius: 12px; width: 100%; font-weight: 600; cursor: pointer; margin-top: 10px; transition: 0.2s; }
+  .btn-auth { background: var(--apple-blue); color: white; border: none; padding: 16px; border-radius: 12px; width: 100%; font-weight: 600; cursor: pointer; margin-top: 10px; transition: 0.2s; font-size: 16px; }
   .btn-auth:hover { opacity: 0.9; }
+
+  /* ================= RESPONSIVIDADE (CELULARES) ================= */
+  @media (max-width: 768px) {
+    .top-navbar { padding: 0 20px; }
+    .menu-toggle { display: block; margin-right: 15px; }
+    .brand-icon { width: 32px; }
+    .brand-logo-text { font-size: 16px; letter-spacing: -0.2px; }
+    
+    .save-badge { display: none; } /* Esconde texto "SALVO" no celular para dar espaço */
+    .btn-acesso-site { padding: 8px 16px; font-size: 12px; margin-right: 10px; }
+    .auth-card { padding: 32px 24px; }
+
+    /* Barra Lateral vira um Menu Deslizante */
+    .sidebar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 280px;
+      transform: translateX(-100%);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border-right: none;
+      box-shadow: 4px 0 20px rgba(0,0,0,0.1);
+    }
+    .sidebar.open { transform: translateX(0); }
+    .sidebar-overlay.open { display: block; }
+    
+    /* A Lixeira precisa ficar sempre visível ou mais fácil de tocar no celular */
+    .trash { opacity: 1; color: #CBD5E1; }
+
+    /* Editor se adapta à tela pequena */
+    .canvas { padding: 30px 20px; }
+    .title-input { font-size: 28px; margin-bottom: 16px; }
+    .body-editor { font-size: 17px; }
+    .empty-state { padding: 60px 30px; }
+    .empty-state p { font-size: 18px; }
+  }
 `;
 
 interface Note {
@@ -175,10 +244,16 @@ const decrypt = (ciphertext: string) => {
   } catch (e) { return ciphertext; }
 };
 
-function Navbar({ session, onSignOut, saveStatus }: any) {
+function Navbar({ session, onSignOut, saveStatus, toggleSidebar }: any) {
   return (
     <nav className="top-navbar">
       <div className="brand">
+        {/* Botão de Hamburger (Apenas no Celular) */}
+        {session && (
+          <button className="menu-toggle" onClick={toggleSidebar}>
+            ☰
+          </button>
+        )}
         <img src="https://i.imgur.com/RuxNMnw.png" alt="Logo" className="brand-icon" />
         <span className="brand-logo-text">Amigo Congressista Doc</span>
       </div>
@@ -202,11 +277,12 @@ function Navbar({ session, onSignOut, saveStatus }: any) {
 
 export default function App() {
   const [session, setSession] = useState<any>(null);
-  const [hasProfile, setHasProfile] = useState<boolean | null>(null); // Novo estado: Checa se tem crachá
+  const [hasProfile, setHasProfile] = useState<boolean | null>(null);
   const [notes, setNotes] = useState<Note[]>([]);
   const [activeTab, setActiveTab] = useState('Geral');
   const [activeNote, setActiveNote] = useState<Note | null>(null);
   const [saveStatus, setSaveStatus] = useState('Salvo');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Estado para controlar o menu no celular
   const saveTimeoutRef = useRef<any>(null);
 
   const [isRegistering, setIsRegistering] = useState(false);
@@ -226,18 +302,12 @@ export default function App() {
   const handleSession = async (currentSession: any) => {
     setSession(currentSession);
     if (currentSession) {
-      // Assim que loga, vamos checar se ele tem o usuário único cadastrado no Doc
-      const { data } = await supabase
-        .from('doc_profiles')
-        .select('username')
-        .eq('id', currentSession.user.id)
-        .maybeSingle();
-
+      const { data } = await supabase.from('doc_profiles').select('username').eq('id', currentSession.user.id).maybeSingle();
       if (data) {
         setHasProfile(true);
         fetchNotes(currentSession.user.id);
       } else {
-        setHasProfile(false); // Ativa a Tela de Interceptação
+        setHasProfile(false);
       }
     } else {
       setHasProfile(null);
@@ -292,10 +362,16 @@ export default function App() {
       setNotes([newN, ...notes]);
       setActiveNote(newN);
       if (tabName) setActiveTab(tabName);
+      setIsSidebarOpen(false); // Fecha o menu no celular ao criar nota
     }
   };
 
-  // Envio do Login/Cadastro Oficial
+  // Funções de clique aprimoradas para mobile
+  const onSelectNote = (note: Note) => {
+    setActiveNote(note);
+    setIsSidebarOpen(false); // Fecha a barra no celular após selecionar
+  };
+
   const handleAuthSubmit = async (e: any) => {
     e.preventDefault();
     try {
@@ -326,7 +402,6 @@ export default function App() {
     } catch (err: any) { alert(err.message); }
   };
 
-  // Envio do Formulário de Interceptação (A Opção B)
   const handleSetupMissingProfile = async (e: any) => {
     e.preventDefault();
     try {
@@ -334,13 +409,7 @@ export default function App() {
       const { data: existingUser } = await supabase.from('doc_profiles').select('username').eq('username', cleanUsername).maybeSingle();
       if (existingUser) { alert('❌ Esse nome de usuário já está em uso. Por favor, escolha outro.'); return; }
 
-      // Cria o crachá do Doc para o usuário que já é do Amigo Congressista
-      const { error } = await supabase.from('doc_profiles').insert([{ 
-        id: session.user.id, 
-        username: cleanUsername, 
-        email: session.user.email 
-      }]);
-
+      const { error } = await supabase.from('doc_profiles').insert([{ id: session.user.id, username: cleanUsername, email: session.user.email }]);
       if (error) throw error;
       
       setHasProfile(true);
@@ -348,7 +417,6 @@ export default function App() {
     } catch (err: any) { alert(err.message); }
   };
 
-  // --- TELA DE LOGIN ---
   if (!session) {
     return (
       <div className="auth-screen">
@@ -356,13 +424,13 @@ export default function App() {
         <Navbar saveStatus={saveStatus} />
         <div className="auth-content">
           <div className="auth-card">
-            <h1 className="brand-logo-text" style={{ fontSize: 28, marginBottom: 8 }}>Amigo Congressista Doc</h1>
+            <h1 className="brand-logo-text" style={{ fontSize: 28, marginBottom: 8, whiteSpace: 'normal' }}>Amigo Congressista Doc</h1>
             <p style={{color: '#86868B', marginBottom: 32, fontSize: 14}}>Repositório Acadêmico Seguro</p>
             <form onSubmit={handleAuthSubmit}>
               {isRegistering ? (
                 <>
                   <input className="apple-input" type="email" placeholder="E-mail institucional" onChange={e => setAuthEmail(e.target.value)} required />
-                  <input className="apple-input" type="text" placeholder="Criar Usuário " onChange={e => setAuthUsername(e.target.value)} required />
+                  <input className="apple-input" type="text" placeholder="Criar Usuário (ex: ivens.med)" onChange={e => setAuthUsername(e.target.value)} required />
                 </>
               ) : (
                 <input className="apple-input" type="text" placeholder="E-mail ou Usuário" onChange={e => setAuthLoginId(e.target.value)} required />
@@ -370,7 +438,7 @@ export default function App() {
               <input className="apple-input" type="password" placeholder="Senha" onChange={e => setAuthPassword(e.target.value)} required />
               <button className="btn-auth" type="submit">{isRegistering ? 'Criar Conta' : 'Entrar'}</button>
             </form>
-            <p style={{marginTop: 24, fontSize: 13, color: '#86868B'}}>
+            <p style={{marginTop: 24, fontSize: 13, color: '#86868B', textAlign: 'center'}}>
               <span onClick={() => setIsRegistering(!isRegistering)} style={{color: 'var(--apple-blue)', cursor: 'pointer', fontWeight: 600}}>
                 {isRegistering ? 'Voltar para Login' : 'Cadastre-se Grátis'}
               </span>
@@ -381,7 +449,6 @@ export default function App() {
     );
   }
 
-  // --- TELA DE INTERCEPTAÇÃO (Opção B) ---
   if (session && hasProfile === false) {
     return (
       <div className="auth-screen">
@@ -396,7 +463,7 @@ export default function App() {
               Vimos que você já é membro do Amigo Congressista. Escolha um nome de usuário único para sincronizar seu repositório.
             </p>
             <form onSubmit={handleSetupMissingProfile}>
-              <input className="apple-input" type="text" placeholder="Seu novo usuário" onChange={e => setAuthUsername(e.target.value)} required />
+              <input className="apple-input" type="text" placeholder="Seu novo usuário (ex: medico.ivens)" onChange={e => setAuthUsername(e.target.value)} required />
               <button className="btn-auth" type="submit">Salvar e Entrar no Repositório</button>
             </form>
           </div>
@@ -405,17 +472,27 @@ export default function App() {
     );
   }
 
-  // Se a sessão existir, mas o perfil ainda estiver carregando (null), não mostra nada pra não piscar
   if (hasProfile === null) return null;
 
-  // --- WORKSPACE (O PAINEL DE NOTAS) ---
   return (
     <div className="app-shell">
       <style>{CSS_AMIGO_DOC}</style>
-      <Navbar session={session} onSignOut={() => supabase.auth.signOut()} saveStatus={saveStatus} />
+      <Navbar 
+        session={session} 
+        onSignOut={() => supabase.auth.signOut()} 
+        saveStatus={saveStatus} 
+        toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+      />
 
       <div className="main-layout">
-        <aside className="sidebar">
+        
+        {/* Fundo escuro quando a barra estiver aberta no celular */}
+        <div 
+          className={`sidebar-overlay ${isSidebarOpen ? 'open' : ''}`} 
+          onClick={() => setIsSidebarOpen(false)}
+        />
+
+        <aside className={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
           <div className="section-label">Eixos Científicos</div>
           <div style={{flex:1, overflowY:'auto'}}>
             {Array.from(new Set(['Geral', ...notes.map(n => n.tab_name)])).map(t => (
@@ -444,7 +521,7 @@ export default function App() {
           <div className="section-label">Notas em {activeTab}</div>
           <div style={{flex:1, overflowY:'auto'}}>
             {notes.filter(n => n.tab_name === activeTab).map(n => (
-              <div key={n.id} className={`nav-item ${activeNote?.id === n.id ? 'active' : ''}`} onClick={() => setActiveNote(n)}>
+              <div key={n.id} className={`nav-item ${activeNote?.id === n.id ? 'active' : ''}`} onClick={() => onSelectNote(n)}>
                 <span style={{flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>{n.title || 'Sem título'}</span>
                 <span className="trash" onClick={async (e) => {
                   e.stopPropagation();
@@ -461,7 +538,8 @@ export default function App() {
 
         <main className="editor-pane">
           {activeNote ? (
-            <div className="canvas">
+            /* A MAGICA DO KEY: Força a recriar o DOM quando muda a nota, resolvendo o bug do texto */
+            <div className="canvas" key={activeNote.id}>
               <input 
                 className="title-input"
                 value={activeNote.title}
