@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from './supabaseClient';
 import CryptoJS from 'crypto-js';
 import DOMPurify from 'dompurify';
@@ -176,7 +176,7 @@ function App() {
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const saveTimeoutRef = useRef<any>(null);
 
   useEffect(() => {
     document.title = "Amigo Congressista Doc - Portal Acadêmico";
@@ -199,7 +199,6 @@ function App() {
   const handleTitleChange = async (newTitle: string) => {
     if (!activeNote) return;
     setActiveNote({ ...activeNote, title: newTitle });
-    // Atualiza o nome na barra lateral na hora
     setNotes(prev => prev.map(n => n.id === activeNote.id ? { ...n, title: newTitle } : n));
 
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
