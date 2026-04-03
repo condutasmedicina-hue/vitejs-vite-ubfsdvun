@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Component } from 'react';
 import { supabase } from './supabaseClient';
 import CryptoJS from 'crypto-js';
 import DOMPurify from 'dompurify';
@@ -57,6 +57,9 @@ const CSS_AMIGO_DOC = `
     display: inline-block;
   }
 
+  /* CLASSES PARA TROCA DINÂMICA DE TEXTO */
+  .text-short { display: none; }
+
   .menu-toggle {
     display: none;
     background: none;
@@ -82,11 +85,11 @@ const CSS_AMIGO_DOC = `
     transition: all 0.2s;
     white-space: nowrap;
   }
+  .btn-acesso-site:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0, 122, 255, 0.3); }
 
   /* --- LAYOUT PRINCIPAL --- */
   .main-layout { display: flex; flex: 1; overflow: hidden; position: relative; }
 
-  /* SIDEBAR RESTRUTURADA */
   .sidebar {
     width: 280px;
     background: var(--bg-sidebar);
@@ -118,7 +121,7 @@ const CSS_AMIGO_DOC = `
     text-align: left;
   }
 
-  /* BOTÃO NOVO DOC (ANTIGA NOVA ANOTAÇÃO) */
+  /* BOTÃO TÍTULO */
   .btn-new-doc {
     background: #FFF;
     border: 1px solid var(--border);
@@ -182,7 +185,11 @@ const CSS_AMIGO_DOC = `
   @media (max-width: 768px) {
     .top-navbar { padding: 0 15px; }
     .menu-toggle { display: block; }
-    .brand-logo-text { font-size: 16px; }
+    
+    /* TROCA DO NOME DA LOGO NO CELULAR */
+    .text-full { display: none; }
+    .text-short { display: inline; font-size: 18px; }
+
     .save-badge { display: none; }
     .btn-acesso-site { padding: 8px 14px; font-size: 11px; }
 
@@ -201,12 +208,17 @@ const CSS_AMIGO_DOC = `
     .trash { opacity: 1; color: #CCC; }
   }
 
-  /* AUTH SCREEN */
+  /* AUTH SCREEN E LOADING */
   .auth-screen { height: 100vh; display: flex; flex-direction: column; background: #F5F5F7; }
   .auth-content { flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px; }
   .auth-card { background: white; padding: 48px; border-radius: 32px; width: 100%; max-width: 440px; text-align: left; box-shadow: 0 20px 60px rgba(0,0,0,0.05); }
   .apple-input { width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 12px; border: 1px solid #D2D2D7; font-size: 16px; background: #FBFBFE; outline: none; }
-  .btn-auth { background: var(--apple-blue); color: white; border: none; padding: 16px; border-radius: 12px; width: 100%; font-weight: 600; cursor: pointer; margin-top: 10px; font-size: 16px; }
+  .apple-input:focus { border-color: var(--apple-blue); }
+  .btn-auth { background: var(--apple-blue); color: white; border: none; padding: 16px; border-radius: 12px; width: 100%; font-weight: 600; cursor: pointer; margin-top: 10px; transition: 0.2s; font-size: 16px; }
+  
+  .loading-container { height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #FBFBFC; }
+  .spinner { width: 40px; height: 40px; border: 4px solid #E5E5EA; border-top: 4px solid #007AFF; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+  @keyframes spin { 100% { transform: rotate(360deg); } }
 `;
 
 interface Note {
@@ -232,7 +244,10 @@ function Navbar({ session, onSignOut, saveStatus, toggleSidebar }: any) {
       <div className="brand">
         {session && <button className="menu-toggle" onClick={toggleSidebar}>☰</button>}
         <img src="https://i.imgur.com/RuxNMnw.png" alt="Logo" className="brand-icon" />
-        <span className="brand-logo-text">Amigo Congressista Doc</span>
+        <span className="brand-logo-text">
+          <span className="text-full">Amigo Congressista Doc</span>
+          <span className="text-short">AMICO DOC</span>
+        </span>
       </div>
       <div className="top-actions">
         <span className="save-badge">{saveStatus}</span>
@@ -245,9 +260,12 @@ function Navbar({ session, onSignOut, saveStatus, toggleSidebar }: any) {
   );
 }
 
-export default function App() {
+// ================= COMPONENTE PRINCIPAL =================
+function MainApp() {
   const [session, setSession] = useState<any>(null);
-  const [hasProfile, setHasProfile] = useState<boolean | null>(null);
+  const [hasProfile, setHasProfile] = useState<boolean>(true); 
+  const [isInitializing, setIsInitializing] = useState<boolean>(true);
+  
   const [notes, setNotes] = useState<Note[]>([]);
   const [activeTab, setActiveTab] = useState('Geral');
   const [activeNote, setActiveNote] = useState<Note | null>(null);
@@ -261,21 +279,6 @@ export default function App() {
   const [authUsername, setAuthUsername] = useState('');
   const [authPassword, setAuthPassword] = useState('');
 
-  useEffect(() => {
-    document.title = "Amigo Congressista Doc";
-    supabase.auth.getSession().then(({ data: { session } }) => handleSession(session));
-    supabase.auth.onAuthStateChange((_event, session) => handleSession(session));
-  }, []);
-
-  const handleSession = async (currentSession: any) => {
-    setSession(currentSession);
-    if (currentSession) {
-      const { data } = await supabase.from('doc_profiles').select('username').eq('id', currentSession.user.id).maybeSingle();
-      if (data) { setHasProfile(true); fetchNotes(currentSession.user.id); }
-      else { setHasProfile(false); }
-    } else { setHasProfile(null); }
-  };
-
   const fetchNotes = async (userId: string) => {
     const { data } = await supabase.from('clinical_notes').select('*').eq('user_id', userId).order('updated_at', { ascending: false });
     if (data) {
@@ -284,6 +287,52 @@ export default function App() {
       if (decrypted.length > 0) setActiveNote(decrypted[0]);
     }
   };
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadData = async (sess: any) => {
+      // Proteção contra sessão corrompida no LocalStorage
+      if (!sess || !sess.user || !sess.user.id) { 
+        if (mounted) setIsInitializing(false);
+        return;
+      }
+      try {
+        const { data } = await supabase.from('doc_profiles').select('username').eq('id', sess.user.id).maybeSingle();
+        if (mounted) setHasProfile(!!data);
+        await fetchNotes(sess.user.id);
+      } catch (err) {
+        console.error("Erro na busca inicial:", err);
+        if (mounted) setHasProfile(true); // Failsafe para destravar login
+      } finally {
+        if (mounted) setIsInitializing(false);
+      }
+    };
+
+    supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
+      if (mounted) {
+        setSession(initialSession);
+        loadData(initialSession);
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, newSession) => {
+      if (mounted) {
+        setSession(newSession);
+        loadData(newSession);
+      }
+    });
+
+    const failsafeTimer = setTimeout(() => {
+      if (mounted) setIsInitializing(false);
+    }, 4000);
+
+    return () => {
+      mounted = false;
+      clearTimeout(failsafeTimer);
+      subscription.unsubscribe();
+    };
+  }, []);
 
   const handleTitleChange = async (newTitle: string) => {
     if (!activeNote) return;
@@ -313,14 +362,14 @@ export default function App() {
   const createNote = async (tabName?: string) => {
     if (!session) return;
     const { data } = await supabase.from('clinical_notes').insert([{ 
-      user_id: session.user.id, tab_name: tabName || activeTab, title: 'Novo Doc Título', content: encrypt('') 
+      user_id: session.user.id, tab_name: tabName || activeTab, title: 'Nova Anotação', content: encrypt('') 
     }]).select().single();
     if (data) {
       const newN = { ...data, content: '' };
       setNotes([newN, ...notes]);
       setActiveNote(newN);
       if (tabName) setActiveTab(tabName);
-      setIsSidebarOpen(false); // Fecha menu no mobile
+      setIsSidebarOpen(false); 
     }
   };
 
@@ -330,11 +379,13 @@ export default function App() {
       if (isRegistering) {
         const cleanUsername = authUsername.toLowerCase().trim().replace(/\s+/g, '');
         const { data: ex } = await supabase.from('doc_profiles').select('username').eq('username', cleanUsername).maybeSingle();
-        if (ex) { alert('❌ Usuário em uso.'); return; }
+        if (ex) { alert('❌ Esse nome de usuário já está em uso. Por favor, escolha outro.'); return; }
+
         const { data, error } = await supabase.auth.signUp({ email: authEmail, password: authPassword });
         if (error) throw error;
         if (data?.user) {
           await supabase.from('doc_profiles').insert([{ id: data.user.id, username: cleanUsername, email: authEmail }]);
+          alert('✅ Cadastro realizado com sucesso! Faça login para continuar.');
           setIsRegistering(false); 
         }
       } else {
@@ -350,6 +401,31 @@ export default function App() {
     } catch (err: any) { alert(err.message); }
   };
 
+  const handleSetupMissingProfile = async (e: any) => {
+    e.preventDefault();
+    try {
+      const cleanUsername = authUsername.toLowerCase().trim().replace(/\s+/g, '');
+      const { data: existingUser } = await supabase.from('doc_profiles').select('username').eq('username', cleanUsername).maybeSingle();
+      if (existingUser) { alert('❌ Esse nome de usuário já está em uso. Por favor, escolha outro.'); return; }
+
+      const { error } = await supabase.from('doc_profiles').insert([{ id: session.user.id, username: cleanUsername, email: session.user.email }]);
+      if (error) throw error;
+      
+      setHasProfile(true);
+      fetchNotes(session.user.id);
+    } catch (err: any) { alert(err.message); }
+  };
+
+  if (isInitializing) {
+    return (
+      <div className="loading-container">
+        <style>{CSS_AMIGO_DOC}</style>
+        <div className="spinner"></div>
+        <p style={{ color: '#86868B', fontWeight: 500, fontSize: 14 }}>Conectando ao Repositório...</p>
+      </div>
+    );
+  }
+
   if (!session) {
     return (
       <div className="auth-screen">
@@ -358,12 +434,12 @@ export default function App() {
         <div className="auth-content">
           <div className="auth-card">
             <h1 className="brand-logo-text" style={{ fontSize: 24, marginBottom: 8, whiteSpace: 'normal' }}>Amigo Congressista Doc</h1>
-            <p style={{color: '#86868B', marginBottom: 24, fontSize: 13}}>Repositório Acadêmico Seguro</p>
+            <p style={{color: '#86868B', marginBottom: 24, fontSize: 13}}>Acesso ao Repositório Seguro</p>
             <form onSubmit={handleAuthSubmit}>
               {isRegistering ? (
                 <>
                   <input className="apple-input" type="email" placeholder="E-mail" onChange={e => setAuthEmail(e.target.value)} required />
-                  <input className="apple-input" type="text" placeholder="Usuário" onChange={e => setAuthUsername(e.target.value)} required />
+                  <input className="apple-input" type="text" placeholder="Criar Usuário" onChange={e => setAuthUsername(e.target.value)} required />
                 </>
               ) : (
                 <input className="apple-input" type="text" placeholder="E-mail ou Usuário" onChange={e => setAuthLoginId(e.target.value)} required />
@@ -373,7 +449,7 @@ export default function App() {
             </form>
             <p style={{marginTop: 20, fontSize: 13, textAlign: 'center'}}>
               <span onClick={() => setIsRegistering(!isRegistering)} style={{color: 'var(--apple-blue)', cursor: 'pointer', fontWeight: 600}}>
-                {isRegistering ? 'Voltar para Login' : 'Cadastre-se Grátis'}
+                {isRegistering ? 'Já tenho conta' : 'Criar conta grátis'}
               </span>
             </p>
           </div>
@@ -382,30 +458,28 @@ export default function App() {
     );
   }
 
-  if (session && hasProfile === false) {
+  if (session && !hasProfile) {
     return (
       <div className="auth-screen">
         <style>{CSS_AMIGO_DOC}</style>
         <Navbar session={session} onSignOut={() => supabase.auth.signOut()} saveStatus={saveStatus} />
         <div className="auth-content">
           <div className="auth-card">
-            <h2 style={{fontSize: 20, fontWeight: 800, marginBottom: 12}}>Bem-vindo ao Doc!</h2>
-            <form onSubmit={async (e) => {
-              e.preventDefault();
-              const clean = authUsername.toLowerCase().trim().replace(/\s+/g, '');
-              const { error } = await supabase.from('doc_profiles').insert([{ id: session.user.id, username: clean, email: session.user.email }]);
-              if (!error) { setHasProfile(true); fetchNotes(session.user.id); }
-            }}>
-              <input className="apple-input" type="text" placeholder="Escolha seu Usuário" onChange={e => setAuthUsername(e.target.value)} required />
-              <button className="btn-auth" type="submit">Salvar Usuário</button>
+            <h2 style={{fontFamily: 'Inter', fontSize: 22, fontWeight: 800, color: 'var(--brand-dark)', marginBottom: 8, letterSpacing: '-0.5px'}}>
+              Bem-vindo ao Doc!
+            </h2>
+            <p style={{color: '#86868B', marginBottom: 24, fontSize: 14, lineHeight: 1.5}}>
+              Vimos que você já é membro do Amigo Congressista. Escolha um nome de usuário único para sincronizar seu repositório.
+            </p>
+            <form onSubmit={handleSetupMissingProfile}>
+              <input className="apple-input" type="text" placeholder="Criar Usuário" onChange={e => setAuthUsername(e.target.value)} required />
+              <button className="btn-auth" type="submit">Salvar e Entrar no Repositório</button>
             </form>
           </div>
         </div>
       </div>
     );
   }
-
-  if (hasProfile === null) return null;
 
   return (
     <div className="app-shell">
@@ -438,7 +512,7 @@ export default function App() {
           </div>
 
           <button className="btn-new-doc" onClick={() => createNote()}>
-            <span style={{fontSize: 20}}>+</span> Novo Doc
+            <span style={{fontSize: 20}}>+</span> Título
           </button>
 
           <div className="section-label">Notas em {activeTab}</div>
@@ -474,5 +548,57 @@ export default function App() {
         </main>
       </div>
     </div>
+  );
+}
+
+// ================= ESCUDO DE ERROS (ERROR BOUNDARY) =================
+class ErrorBoundary extends Component<{children: React.ReactNode}, {hasError: boolean, errorMsg: string}> {
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false, errorMsg: '' };
+  }
+
+  static getDerivedStateFromError(error: any) {
+    return { hasError: true, errorMsg: error.toString() };
+  }
+
+  componentDidCatch(error: any, errorInfo: any) {
+    console.error("CRASH INTERCEPTADO:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: 40, backgroundColor: '#FFF0F0', height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: 'sans-serif' }}>
+          <h2 style={{ color: '#D8000C', marginBottom: 10 }}>Ocorreu um Erro no Aplicativo</h2>
+          <p style={{ color: '#555', marginBottom: 20 }}>O cache do seu navegador pode estar corrompido.</p>
+          
+          <pre style={{ backgroundColor: '#FFF', padding: 20, borderRadius: 8, border: '1px solid #FCC', color: '#D8000C', maxWidth: '80%', overflowX: 'auto', marginBottom: 30 }}>
+            {this.state.errorMsg}
+          </pre>
+
+          <button 
+            onClick={() => {
+              window.localStorage.clear();
+              window.sessionStorage.clear();
+              window.location.reload();
+            }} 
+            style={{ padding: '12px 24px', backgroundColor: '#D8000C', color: '#FFF', border: 'none', borderRadius: 8, fontWeight: 'bold', cursor: 'pointer', fontSize: 16 }}
+          >
+            Limpar Cache e Destravar
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+// Exporta o App blindado pelo escudo de erros
+export default function App() {
+  return (
+    <ErrorBoundary>
+      <MainApp />
+    </ErrorBoundary>
   );
 }
