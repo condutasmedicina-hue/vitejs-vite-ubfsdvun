@@ -286,11 +286,6 @@ export default function App() {
     }
   };
 
-  const onSelectNote = (note: Note) => {
-    setActiveNote(note);
-    setIsSidebarOpen(false);
-  };
-
   const handleAuthSubmit = async (e: any) => {
     e.preventDefault();
     try {
