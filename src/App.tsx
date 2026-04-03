@@ -463,7 +463,7 @@ export default function App() {
               Vimos que você já é membro do Amigo Congressista. Escolha um nome de usuário único para sincronizar seu repositório.
             </p>
             <form onSubmit={handleSetupMissingProfile}>
-              <input className="apple-input" type="text" placeholder="Seu novo usuário (ex: medico.ivens)" onChange={e => setAuthUsername(e.target.value)} required />
+              <input className="apple-input" type="text" placeholder="Seu novo usuário" onChange={e => setAuthUsername(e.target.value)} required />
               <button className="btn-auth" type="submit">Salvar e Entrar no Repositório</button>
             </form>
           </div>
