@@ -313,7 +313,7 @@ export default function App() {
   const createNote = async (tabName?: string) => {
     if (!session) return;
     const { data } = await supabase.from('clinical_notes').insert([{ 
-      user_id: session.user.id, tab_name: tabName || activeTab, title: 'Nova Anotação', content: encrypt('') 
+      user_id: session.user.id, tab_name: tabName || activeTab, title: 'Título', content: encrypt('') 
     }]).select().single();
     if (data) {
       const newN = { ...data, content: '' };
