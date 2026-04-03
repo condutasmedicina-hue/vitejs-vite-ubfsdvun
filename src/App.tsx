@@ -118,7 +118,7 @@ const CSS_AMIGO_DOC = `
     text-align: left;
   }
 
-  /* BOTÃO TÍTULO (ANTIGA NOVA ANOTAÇÃO) */
+  /* BOTÃO NOVO DOC (ANTIGA NOVA ANOTAÇÃO) */
   .btn-new-doc {
     background: #FFF;
     border: 1px solid var(--border);
@@ -438,7 +438,7 @@ export default function App() {
           </div>
 
           <button className="btn-new-doc" onClick={() => createNote()}>
-            <span style={{fontSize: 20}}>+</span> Título
+            <span style={{fontSize: 20}}>+</span> Novo Doc
           </button>
 
           <div className="section-label">Notas em {activeTab}</div>
