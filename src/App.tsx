@@ -297,16 +297,12 @@ function MainApp() {
     return () => { mounted = false; clearTimeout(failsafe); subscription.unsubscribe(); };
   }, []);
 
-  // FORÇANDO A TELA A ATUALIZAR IMEDIATAMENTE VIA ESTADO FUNCIONAL
   const handleTitleChange = (newTitle: string) => {
     if (!activeNote) return;
     const currentId = activeNote.id;
-
-    // Atualiza a interface instantaneamente
     setActiveNote(prev => prev ? { ...prev, title: newTitle } : null);
     setNotes(prev => prev.map(n => n.id === currentId ? { ...n, title: newTitle } : n));
     
-    // Salva no banco em segundo plano
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     setSaveStatus('Editando...');
     saveTimeoutRef.current = setTimeout(async () => {
@@ -321,11 +317,9 @@ function MainApp() {
     const currentId = activeNote.id;
     const clean = DOMPurify.sanitize(content);
 
-    // Atualiza a interface instantaneamente
     setActiveNote(prev => prev ? { ...prev, content: clean } : null);
     setNotes(prev => prev.map(n => n.id === currentId ? { ...n, content: clean } : n));
     
-    // Salva no banco em segundo plano
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     setSaveStatus('Digitando...');
     saveTimeoutRef.current = setTimeout(async () => {
@@ -342,7 +336,6 @@ function MainApp() {
     }]).select().single();
     if (data) {
       const newN = { ...data, content: '' };
-      // Atualiza a lista na hora, empurrando a nova nota para cima
       setNotes(prev => [newN, ...prev]);
       setActiveNote(newN);
       if (tabName) setActiveTab(tabName);
@@ -356,11 +349,9 @@ function MainApp() {
     
     if (destination && destination.trim() !== "") {
       const target = destination.trim();
-      // Interface atualiza de imediato
       setNotes(prev => prev.map(n => n.id === noteId ? { ...n, tab_name: target } : n));
       setActiveNote(prev => prev?.id === noteId ? { ...prev, tab_name: target } : prev);
       
-      // Banco de dados salva depois
       await supabase.from('clinical_notes').update({ tab_name: target }).eq('id', noteId);
     }
   };
@@ -388,6 +379,21 @@ function MainApp() {
         const { error } = await supabase.auth.signInWithPassword({ email: em, password: authPassword });
         if (error) throw error;
       }
+    } catch (err: any) { alert(err.message); }
+  };
+
+  const handleSetupMissingProfile = async (e: any) => {
+    e.preventDefault();
+    try {
+      const cleanUsername = authUsername.toLowerCase().trim().replace(/\s+/g, '');
+      const { data: existingUser } = await supabase.from('doc_profiles').select('username').eq('username', cleanUsername).maybeSingle();
+      if (existingUser) { alert('❌ Esse nome de usuário já está em uso. Por favor, escolha outro.'); return; }
+
+      const { error } = await supabase.from('doc_profiles').insert([{ id: session.user.id, username: cleanUsername, email: session.user.email }]);
+      if (error) throw error;
+      
+      setHasProfile(true);
+      fetchNotes(session.user.id);
     } catch (err: any) { alert(err.message); }
   };
 
@@ -423,6 +429,28 @@ function MainApp() {
               {isRegistering ? 'Já tenho conta' : 'Criar conta grátis'}
             </span>
           </p>
+        </div>
+      </div>
+    </div>
+  );
+
+  // ====== A TELA INTERCEPTADORA ESTÁ DE VOLTA ======
+  if (session && !hasProfile) return (
+    <div className="auth-screen">
+      <style>{CSS_AMIGO_DOC}</style>
+      <Navbar session={session} onSignOut={() => supabase.auth.signOut()} saveStatus={saveStatus} />
+      <div className="auth-content">
+        <div className="auth-card">
+          <h2 style={{fontFamily: 'Inter', fontSize: 22, fontWeight: 800, color: 'var(--brand-dark)', marginBottom: 8, letterSpacing: '-0.5px'}}>
+            Bem-vindo ao Doc!
+          </h2>
+          <p style={{color: '#86868B', marginBottom: 24, fontSize: 14, lineHeight: 1.5}}>
+            Vimos que você já é membro do Amigo Congressista. Escolha um nome de usuário único para sincronizar seu repositório.
+          </p>
+          <form onSubmit={handleSetupMissingProfile}>
+            <input className="apple-input" type="text" placeholder="Criar Usuário" onChange={e => setAuthUsername(e.target.value)} required />
+            <button className="btn-auth" type="submit">Salvar e Entrar no Repositório</button>
+          </form>
         </div>
       </div>
     </div>
