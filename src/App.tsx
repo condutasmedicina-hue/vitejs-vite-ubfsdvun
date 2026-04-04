@@ -297,29 +297,40 @@ function MainApp() {
     return () => { mounted = false; clearTimeout(failsafe); subscription.unsubscribe(); };
   }, []);
 
+  // FORÇANDO A TELA A ATUALIZAR IMEDIATAMENTE VIA ESTADO FUNCIONAL
   const handleTitleChange = (newTitle: string) => {
     if (!activeNote) return;
-    setActiveNote({ ...activeNote, title: newTitle });
-    setNotes(prev => prev.map(n => n.id === activeNote.id ? { ...n, title: newTitle } : n));
+    const currentId = activeNote.id;
+
+    // Atualiza a interface instantaneamente
+    setActiveNote(prev => prev ? { ...prev, title: newTitle } : null);
+    setNotes(prev => prev.map(n => n.id === currentId ? { ...n, title: newTitle } : n));
+    
+    // Salva no banco em segundo plano
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     setSaveStatus('Editando...');
     saveTimeoutRef.current = setTimeout(async () => {
       setSaveStatus('Salvando...');
-      await supabase.from('clinical_notes').update({ title: newTitle, updated_at: new Date().toISOString() }).eq('id', activeNote.id);
+      await supabase.from('clinical_notes').update({ title: newTitle, updated_at: new Date().toISOString() }).eq('id', currentId);
       setSaveStatus('Salvo');
-    }, 1000);
+    }, 800);
   };
 
   const handleContentChange = (content: string) => {
     if (!activeNote) return;
+    const currentId = activeNote.id;
     const clean = DOMPurify.sanitize(content);
-    setActiveNote({ ...activeNote, content: clean });
-    setNotes(prev => prev.map(n => n.id === activeNote.id ? { ...n, content: clean } : n));
+
+    // Atualiza a interface instantaneamente
+    setActiveNote(prev => prev ? { ...prev, content: clean } : null);
+    setNotes(prev => prev.map(n => n.id === currentId ? { ...n, content: clean } : n));
+    
+    // Salva no banco em segundo plano
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     setSaveStatus('Digitando...');
     saveTimeoutRef.current = setTimeout(async () => {
       setSaveStatus('Salvando...');
-      await supabase.from('clinical_notes').update({ content: encrypt(clean), updated_at: new Date().toISOString() }).eq('id', activeNote.id);
+      await supabase.from('clinical_notes').update({ content: encrypt(clean), updated_at: new Date().toISOString() }).eq('id', currentId);
       setSaveStatus('Salvo');
     }, 1200);
   };
@@ -331,7 +342,8 @@ function MainApp() {
     }]).select().single();
     if (data) {
       const newN = { ...data, content: '' };
-      setNotes([newN, ...notes]);
+      // Atualiza a lista na hora, empurrando a nova nota para cima
+      setNotes(prev => [newN, ...prev]);
       setActiveNote(newN);
       if (tabName) setActiveTab(tabName);
       setIsSidebarOpen(false);
@@ -344,8 +356,11 @@ function MainApp() {
     
     if (destination && destination.trim() !== "") {
       const target = destination.trim();
+      // Interface atualiza de imediato
       setNotes(prev => prev.map(n => n.id === noteId ? { ...n, tab_name: target } : n));
-      if (activeNote?.id === noteId) setActiveNote({ ...activeNote, tab_name: target });
+      setActiveNote(prev => prev?.id === noteId ? { ...prev, tab_name: target } : prev);
+      
+      // Banco de dados salva depois
       await supabase.from('clinical_notes').update({ tab_name: target }).eq('id', noteId);
     }
   };
@@ -417,13 +432,10 @@ function MainApp() {
     <div className="app-shell">
       <style>{CSS_AMIGO_DOC}</style>
       <Navbar session={session} onSignOut={() => supabase.auth.signOut()} saveStatus={saveStatus} toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
-      
       <div className="main-layout">
         <div className={`sidebar-overlay ${isSidebarOpen ? 'open' : ''}`} onClick={() => setIsSidebarOpen(false)} />
-        
         <aside className={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
           
-          {/* 1. NOTAS DA CATEGORIA ATIVA (EM CIMA) */}
           <div className="section-label">Notas em {activeTab}</div>
           <div style={{flex: '0 0 auto', maxHeight: '40vh', overflowY:'auto', marginBottom: '10px'}}>
             {notes.filter(n => n.tab_name === activeTab).map(n => (
@@ -432,7 +444,12 @@ function MainApp() {
                 <div className="item-actions">
                   <span className="action-icon" title="Mover para Pasta" onClick={(e) => { e.stopPropagation(); moveNote(n.id); }}>📁</span>
                   <span className="action-icon" style={{color: '#FF3B30'}} onClick={async (e) => {
-                    e.stopPropagation(); if(confirm('Excluir nota?')) { setNotes(notes.filter(note => note.id !== n.id)); if(activeNote?.id === n.id) setActiveNote(null); await supabase.from('clinical_notes').delete().eq('id', n.id); }
+                    e.stopPropagation(); 
+                    if(confirm('Excluir nota?')) { 
+                      setNotes(prev => prev.filter(note => note.id !== n.id)); 
+                      setActiveNote(prev => prev?.id === n.id ? null : prev); 
+                      await supabase.from('clinical_notes').delete().eq('id', n.id); 
+                    }
                   }}>🗑️</span>
                 </div>
               </div>
@@ -445,17 +462,17 @@ function MainApp() {
 
           <hr style={{border: 'none', borderTop: '1px solid var(--border)', margin: '10px 0'}} />
 
-          {/* 2. EIXOS CIENTÍFICOS / PASTAS (EMBAIXO) */}
           <div className="section-label">Eixos Científicos</div>
           <div style={{flex:1, overflowY:'auto'}}>
             {Array.from(new Set(['Geral', ...notes.map(n => n.tab_name)])).map(t => (
               <div key={t} className={`nav-item ${activeTab === t ? 'active' : ''}`} onClick={() => {setActiveTab(t); setIsSidebarOpen(false);}}>
                 <span>{t === 'Geral' ? '📥 Geral' : `📂 ${t}`}</span>
                 {t !== 'Geral' && <span className="trash action-icon" onClick={async (e) => {
-                  e.stopPropagation(); if(confirm('Excluir eixo? As notas serão mantidas em Geral.')) { 
-                    await supabase.from('clinical_notes').update({ tab_name: 'Geral' }).eq('tab_name', t);
-                    setNotes(notes.map(n => n.tab_name === t ? {...n, tab_name: 'Geral'} : n));
+                  e.stopPropagation(); 
+                  if(confirm('Excluir eixo? As notas serão movidas para Geral.')) { 
+                    setNotes(prev => prev.map(n => n.tab_name === t ? {...n, tab_name: 'Geral'} : n));
                     setActiveTab('Geral');
+                    await supabase.from('clinical_notes').update({ tab_name: 'Geral' }).eq('tab_name', t);
                   }
                 }}>🗑️</span>}
               </div>
